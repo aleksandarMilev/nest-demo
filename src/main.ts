@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
-async function bootstrap() {
+void (async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService);
 
@@ -33,5 +33,4 @@ async function bootstrap() {
   await app.listen(port, () => {
     console.log(`Nest service is listening on port ${port}...`);
   });
-}
-bootstrap();
+})();
