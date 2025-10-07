@@ -1,8 +1,14 @@
 import * as Joi from 'joi';
-import * as nodeEnvironments from './constants';
+import { PORT_MIN_VALUE, PORT_MAX_VALUE, NODE_ENVIRONMENTS } from './constants';
 
 export default Joi.object({
-  PORT: Joi.number().required(),
+  PORT: Joi.number()
+    .integer()
+    .min(PORT_MIN_VALUE)
+    .max(PORT_MAX_VALUE)
+    .required(),
   DATABASE_URL: Joi.string().uri().required(),
-  NODE_ENV: Joi.string().valid(nodeEnvironments).required(),
+  NODE_ENV: Joi.string()
+    .valid(...NODE_ENVIRONMENTS)
+    .required(),
 });
