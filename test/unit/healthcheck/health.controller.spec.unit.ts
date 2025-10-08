@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing';
 import { HealthCheckService } from '@nestjs/terminus';
 import { HealthController } from '../../../src/health/health.controller';
 
-describe('Healthchek unit tests', () => {
+describe('Healthcheck unit tests', () => {
   let controller: HealthController;
   let mockService: Partial<HealthCheckService>;
 

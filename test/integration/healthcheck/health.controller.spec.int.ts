@@ -4,7 +4,7 @@ import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { AppModule } from '../../../src/app.module';
 
-describe('Healthchek integration tests', () => {
+describe('Healthcheck integration tests', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
@@ -20,7 +20,7 @@ describe('Healthchek integration tests', () => {
     await app.close();
   });
 
-  it('should return 200 on GET /health', async () => {
+  it('should return 200 with status:ok on GET /health', async () => {
     const response = await request((await app.getHttpServer()) as Express)
       .get('/health')
       .expect(200);
