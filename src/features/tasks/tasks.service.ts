@@ -1,56 +1,72 @@
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
-import { Mapper } from './mapping/mapper';
-import { Injectable } from '@nestjs/common';
-import { GetTaskDto } from './dtos/getTask.dto';
-import { TaskEntity } from './entities/task.entity';
+import {
+  createEntityNotFoundErrorMessage as entityNotFoundErrorMessage,
+  entityWriteOperationLogMessage as entityWroteErrorMessage,
+} from '../../common/constants/messages';
+import { TASK_NAME } from './constants/constants';
 import { CreateTaskDto } from './dtos/createTask.dto';
+import { GetTaskDto } from './dtos/getTask.dto';
 import { UpdateTaskDto } from './dtos/updateTask.dto';
+import { TaskEntity } from './entities/task.entity';
+import {
+  createDtoToEntity,
+  entityToGetDto,
+  updateDtoToEntity,
+} from './mapping/mapper';
 
 @Injectable()
 export class TasksService {
-  private readonly tasks: TaskEntity[];
+  private readonly logger = new Logger(TasksService.name);
+  private readonly tasks: TaskEntity[] = [];
 
-  constructor(private readonly mapper: Mapper) {
-    this.tasks = [];
+  async all(): Promise<GetTaskDto[]> {
+    return this.tasks.map(entityToGetDto);
   }
 
-  all(): GetTaskDto[] {
-    return this.tasks.map((t) => this.mapper.entityToGetDto(t));
-  }
-
-  byId(id: string): GetTaskDto | null {
-    const entity = this.tasks.find((t) => t.id == id);
+  async byId(id: string): Promise<GetTaskDto> {
+    const entity = this.tasks.find((t) => t.id === id);
     if (!entity) {
-      return null;
+      this.#logAndThrowNotFound(id);
     }
 
-    return this.mapper.entityToGetDto(entity);
+    return entityToGetDto(entity);
   }
 
-  create(dto: CreateTaskDto): string {
+  async create(dto: CreateTaskDto): Promise<GetTaskDto> {
     const id = uuidv4();
-    const entity = this.mapper.createDtoToEntity(id, dto);
+    const entity = createDtoToEntity(id, dto);
 
     this.tasks.push(entity);
+    this.logger.log(entityWroteErrorMessage(TASK_NAME, id, 'created'));
 
-    return id;
+    return entityToGetDto(entity);
   }
 
-  update(id: string, dto: UpdateTaskDto): null | void {
-    const entity = this.tasks.find((t) => t.id == id);
+  async update(id: string, dto: UpdateTaskDto): Promise<void> {
+    const entity = this.tasks.find((t) => t.id === id);
     if (!entity) {
-      return null;
+      this.#logAndThrowNotFound(id);
     }
 
-    this.mapper.updateDtoToEntity(dto, entity);
+    updateDtoToEntity(dto, entity);
+    this.logger.log(entityWroteErrorMessage(TASK_NAME, id, 'updated'));
   }
 
-  remove(id: string): null | void {
-    const index = this.tasks.findIndex((t) => t.id == id);
+  async remove(id: string): Promise<void> {
+    const index = this.tasks.findIndex((t) => t.id === id);
     if (index < 0) {
-      return null;
+      this.#logAndThrowNotFound(id);
     }
 
     this.tasks.splice(index, 1);
+    this.logger.log(entityWroteErrorMessage(TASK_NAME, id, 'deleted'));
+  }
+
+  #logAndThrowNotFound(id: string): never {
+    const message = entityNotFoundErrorMessage(id, TASK_NAME);
+    this.logger.warn(message);
+
+    throw new NotFoundException(message);
   }
 }

@@ -1,5 +1,5 @@
 import * as Joi from 'joi';
-import { PORT_MIN_VALUE, PORT_MAX_VALUE, NODE_ENVIRONMENTS } from './constants';
+import { NODE_ENVIRONMENTS, PORT_MAX_VALUE, PORT_MIN_VALUE } from './constants';
 
 export default Joi.object({
   PORT: Joi.number()

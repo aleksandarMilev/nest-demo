@@ -1,15 +1,17 @@
-import { AppModule } from './app.module';
-import { NestFactory } from '@nestjs/core';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ValidationPipe } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AppModule } from './app.module';
+import { GLOBAL_PREFIX, LOG_LEVELS } from './common/constants/constants';
 
 void (async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
   const config = app.get(ConfigService);
+  const logger = new Logger(bootstrap.name);
 
-  app.setGlobalPrefix('api/v1');
-
+  app.setGlobalPrefix(GLOBAL_PREFIX);
   app
     .useGlobalPipes(
       new ValidationPipe({
@@ -18,7 +20,7 @@ void (async function bootstrap() {
         transform: true,
       }),
     )
-    .useLogger(['log', 'error', 'warn', 'debug']);
+    .useLogger(LOG_LEVELS);
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Nest Demo API')
@@ -26,11 +28,11 @@ void (async function bootstrap() {
     .setVersion('1.0')
     .build();
 
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('docs', app, document);
+  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('docs', app, swaggerDocument);
 
   const port = config.getOrThrow<string>('PORT');
   await app.listen(port, () => {
-    console.log(`Nest service is listening on port ${port}...`);
+    logger.log(`Nest service is listening on port ${port}...`);
   });
 })();
