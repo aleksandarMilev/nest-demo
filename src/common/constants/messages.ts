@@ -1,8 +1,6 @@
 import { OperationType } from '../types/types';
 
-export const createEntityNotFoundErrorMessage = <
-  T extends string | number | bigint,
->(
+export const entityNotFoundErrorMessage = <T extends string | number | bigint>(
   id: T,
   resourceName: string,
 ): string => `${resourceName} with Id: ${String(id)} not found!`;
@@ -12,5 +10,5 @@ export const entityWriteOperationLogMessage = <
 >(
   id: T,
   resourceName: string,
-  oprationType: OperationType,
-): string => `${resourceName} with Id: ${String(id)} was ${oprationType}`;
+  operationType: OperationType,
+): string => `${resourceName} with Id: ${String(id)} was ${operationType}.`;

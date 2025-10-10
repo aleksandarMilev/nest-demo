@@ -6,14 +6,24 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Post,
   Put,
   Req,
   Res,
 } from '@nestjs/common';
-import { ApiResponse } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
+import { ProblemDetails } from '../../common/classes/classes';
 import { GLOBAL_PREFIX } from '../../common/constants/constants';
+import {
+  ApiCreatedWithLocation,
+  ApiErrorsNotFoundBadRequest,
+  ApiNoContent,
+  ApiOk,
+  ApiOkArray,
+  ApiTag,
+  ApiUuidParam,
+} from '../../common/decorators/swagger.decorators';
 import { buildLocation } from '../../common/functions/utils';
 import { TASK_NAME } from './constants/constants';
 import { CreateTaskDto } from './dtos/createTask.dto';
@@ -21,23 +31,27 @@ import { GetTaskDto } from './dtos/getTask.dto';
 import { UpdateTaskDto } from './dtos/updateTask.dto';
 import { TasksService } from './tasks.service';
 
+@ApiTag('Tasks')
 @Controller('tasks')
 export class TasksController {
   constructor(private readonly service: TasksService) {}
 
-  @ApiResponse({ status: HttpStatus.OK, type: GetTaskDto })
+  @ApiOkArray(GetTaskDto, 'List all tasks')
   @Get()
   all() {
     return this.service.all();
   }
 
-  @ApiResponse({ status: HttpStatus.OK, type: GetTaskDto })
+  @ApiOk(GetTaskDto, 'Get a task by id')
+  @ApiUuidParam('id', 'Task ID')
+  @ApiErrorsNotFoundBadRequest(ProblemDetails)
   @Get(':id')
-  byId(@Param('id') id: string) {
+  byId(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.service.byId(id);
   }
 
-  @ApiResponse({ status: HttpStatus.CREATED, type: GetTaskDto })
+  @ApiCreatedWithLocation(GetTaskDto, 'Create a new task')
+  @ApiErrorsNotFoundBadRequest(ProblemDetails)
   @Post()
   async create(
     @Body() dto: CreateTaskDto,
@@ -52,23 +66,28 @@ export class TasksController {
       TASK_NAME,
       task.id,
     );
-
     response.setHeader('Location', location);
-
     return task;
   }
 
-  @ApiResponse({ status: HttpStatus.NO_CONTENT })
+  @ApiNoContent('Task updated', 'Replace a task (full update)')
+  @ApiUuidParam('id', 'Task ID')
+  @ApiErrorsNotFoundBadRequest(ProblemDetails)
   @Put(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  update(@Param('id') id: string, @Body() dto: UpdateTaskDto) {
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateTaskDto,
+  ) {
     return this.service.update(id, dto);
   }
 
-  @ApiResponse({ status: HttpStatus.NO_CONTENT })
+  @ApiNoContent('Task removed', 'Delete a task')
+  @ApiUuidParam('id', 'Task ID')
+  @ApiErrorsNotFoundBadRequest(ProblemDetails)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id') id: string) {
+  remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.service.remove(id);
   }
 }

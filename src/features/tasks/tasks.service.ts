@@ -1,8 +1,8 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 import {
-  createEntityNotFoundErrorMessage as entityNotFoundErrorMessage,
-  entityWriteOperationLogMessage as entityWroteErrorMessage,
+  entityNotFoundErrorMessage,
+  entityWriteOperationLogMessage,
 } from '../../common/constants/messages';
 import { TASK_NAME } from './constants/constants';
 import { CreateTaskDto } from './dtos/createTask.dto';
@@ -34,11 +34,11 @@ export class TasksService {
   }
 
   async create(dto: CreateTaskDto): Promise<GetTaskDto> {
-    const id = uuidv4();
+    const id = randomUUID();
     const entity = createDtoToEntity(id, dto);
 
     this.tasks.push(entity);
-    this.logger.log(entityWroteErrorMessage(TASK_NAME, id, 'created'));
+    this.logger.log(entityWriteOperationLogMessage(id, TASK_NAME, 'created'));
 
     return entityToGetDto(entity);
   }
@@ -50,7 +50,7 @@ export class TasksService {
     }
 
     updateDtoToEntity(dto, entity);
-    this.logger.log(entityWroteErrorMessage(TASK_NAME, id, 'updated'));
+    this.logger.log(entityWriteOperationLogMessage(id, TASK_NAME, 'updated'));
   }
 
   async remove(id: string): Promise<void> {
@@ -60,7 +60,7 @@ export class TasksService {
     }
 
     this.tasks.splice(index, 1);
-    this.logger.log(entityWroteErrorMessage(TASK_NAME, id, 'deleted'));
+    this.logger.log(entityWriteOperationLogMessage(id, TASK_NAME, 'deleted'));
   }
 
   #logAndThrowNotFound(id: string): never {

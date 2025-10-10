@@ -1,7 +1,8 @@
-import { GetTaskDto } from '../dtos/getTask.dto';
-import { TaskEntity } from '../entities/task.entity';
-import { UpdateTaskDto } from '../dtos/updateTask.dto';
+import { isNonEmptyString } from '../../../common/functions/utils';
 import { CreateTaskDto } from '../dtos/createTask.dto';
+import { GetTaskDto } from '../dtos/getTask.dto';
+import { UpdateTaskDto } from '../dtos/updateTask.dto';
+import { TaskEntity } from '../entities/task.entity';
 
 export const entityToGetDto = (entity: TaskEntity): GetTaskDto => {
   return {
@@ -22,12 +23,13 @@ export const createDtoToEntity = (
   };
 };
 
-export const updateDtoToEntity = (dto: UpdateTaskDto, entity: TaskEntity) => {
-  if (dto.title) {
-    entity.title = dto.title;
-  }
-
-  if (dto.description) {
-    entity.description = dto.description;
-  }
-};
+export const updateDtoToEntity = (
+  dto: UpdateTaskDto,
+  entity: TaskEntity,
+): TaskEntity => ({
+  ...entity,
+  ...(isNonEmptyString(dto.title) ? { title: dto.title.trim() } : null),
+  ...(isNonEmptyString(dto.description)
+    ? { description: dto.description.trim() }
+    : null),
+});
