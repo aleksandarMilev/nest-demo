@@ -10,7 +10,7 @@ import { HealthReportDto } from './classes/classes';
 @ApiTags('Health')
 @Controller('health')
 export class HealthController {
-  constructor(private serivce: HealthCheckService) {}
+  constructor(private service: HealthCheckService) {}
 
   @ApiOkResponse({ description: 'Healthy', type: HealthReportDto })
   @ApiServiceUnavailableResponse({
@@ -20,6 +20,6 @@ export class HealthController {
   @Get()
   @HealthCheck()
   check() {
-    return this.serivce.check([]);
+    return this.service.check([]);
   }
 }

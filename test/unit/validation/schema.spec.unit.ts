@@ -1,7 +1,7 @@
-import schema from '../../../src/validation/schema';
 import { PORT_MIN_VALUE } from '../../../src/validation/constants';
+import schema from '../../../src/validation/schema';
 
-describe('Schema unit tests', () => {
+describe('Validation Schema', () => {
   it('should not return error when schema is valid', () => {
     const result = schema.validate({
       PORT: 3_000,
@@ -12,7 +12,7 @@ describe('Schema unit tests', () => {
     expect(result.error).toBeUndefined();
   });
 
-  it('should return error when a varaible is missing', () => {
+  it('should return error when a variable is missing', () => {
     const result = schema.validate({
       DATABASE_URL: 'postgres://user:pass@localhost:5432/db',
       NODE_ENV: 'development',

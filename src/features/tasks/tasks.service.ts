@@ -18,7 +18,7 @@ import {
 @Injectable()
 export class TasksService {
   private readonly logger = new Logger(TasksService.name);
-  private readonly tasks: TaskEntity[] = [];
+  private tasks: TaskEntity[] = [];
 
   async all(): Promise<GetTaskDto[]> {
     return this.tasks.map(entityToGetDto);

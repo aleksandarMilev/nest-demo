@@ -66,6 +66,7 @@ export class TasksController {
       TASK_NAME,
       task.id,
     );
+
     response.setHeader('Location', location);
     return task;
   }
