@@ -1,4 +1,4 @@
-import { LogLevel } from '@nestjs/common';
+import type { LogLevel } from '@nestjs/common';
 
 export const GLOBAL_PREFIX = 'api/v1';
 

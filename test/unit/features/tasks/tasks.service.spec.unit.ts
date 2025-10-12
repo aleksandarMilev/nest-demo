@@ -1,4 +1,5 @@
 import { Logger, NotFoundException } from '@nestjs/common';
+
 import { TasksService } from '../../../../src/features/tasks/tasks.service';
 
 describe('Tasks Service', () => {
@@ -71,7 +72,7 @@ describe('Tasks Service', () => {
     it('should push the task at the array', async () => {
       const result = await service.create({ title: 't', description: 'd' });
       const all = await service.all();
-      const task = all.find((t) => t.id == result.id);
+      const task = all.find((t) => t.id === result.id);
 
       expect(task!.id).toBeDefined();
       expect(task!.title).toBe('t');

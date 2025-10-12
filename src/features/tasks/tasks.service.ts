@@ -1,5 +1,8 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/require-await */
 import { randomUUID } from 'node:crypto';
+
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+
 import {
   entityNotFoundErrorMessage,
   entityWriteOperationLogMessage,

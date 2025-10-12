@@ -1,8 +1,8 @@
 import { isNonEmptyString } from '../../../common/functions/utils';
-import { CreateTaskDto } from '../dtos/createTask.dto';
-import { GetTaskDto } from '../dtos/getTask.dto';
-import { UpdateTaskDto } from '../dtos/updateTask.dto';
-import { TaskEntity } from '../entities/task.entity';
+import type { CreateTaskDto } from '../dtos/createTask.dto';
+import type { GetTaskDto } from '../dtos/getTask.dto';
+import type { UpdateTaskDto } from '../dtos/updateTask.dto';
+import type { TaskEntity } from '../entities/task.entity';
 
 export const entityToGetDto = (entity: TaskEntity): GetTaskDto => {
   return {

@@ -5,6 +5,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus';
+
 import { HealthReportDto } from './classes/classes';
 
 @ApiTags('Health')

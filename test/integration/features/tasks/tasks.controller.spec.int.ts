@@ -1,10 +1,13 @@
-import { HttpStatus, INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
-import { Express } from 'express';
 import { randomUUID } from 'node:crypto';
+
+import type { INestApplication } from '@nestjs/common';
+import { HttpStatus } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import type { Express } from 'express';
 import request from 'supertest';
+
 import { AppModule } from '../../../../src/app.module';
-import { GetTaskDto } from '../../../../src/features/tasks/dtos/getTask.dto';
+import type { GetTaskDto } from '../../../../src/features/tasks/dtos/getTask.dto';
 
 describe('TaskController', () => {
   let app: INestApplication;
@@ -18,7 +21,7 @@ describe('TaskController', () => {
     app = module.createNestApplication();
     await app.init();
 
-    server = app.getHttpServer();
+    server = app.getHttpServer() as Express;
   });
 
   afterEach(async () => {
@@ -61,7 +64,7 @@ describe('TaskController', () => {
   describe('byId', () => {
     it('should return 200 with the correct task', async () => {
       const postResponse = await postDummyTask(server);
-      const createdTaskId = postResponse.body.id;
+      const createdTaskId = (postResponse.body as GetTaskDto).id;
       const getResponse = await request(server)
         .get(`/tasks/${createdTaskId}`)
         .expect(HttpStatus.OK);
@@ -107,7 +110,7 @@ describe('TaskController', () => {
     it('should return 204', async () => {
       const postResponse = await postDummyTask(server);
 
-      const createdTaskId = postResponse.body.id;
+      const createdTaskId = (postResponse.body as GetTaskDto).id;
       await request(server)
         .put(`/tasks/${createdTaskId}`)
         .send({ title: 'updated t', description: 'updated d' })
@@ -137,7 +140,7 @@ describe('TaskController', () => {
     it('should return 204', async () => {
       const postResponse = await postDummyTask(server);
 
-      const createdTaskId = postResponse.body.id;
+      const createdTaskId = (postResponse.body as GetTaskDto).id;
       await request(server)
         .delete(`/tasks/${createdTaskId}`)
         .expect(HttpStatus.NO_CONTENT);

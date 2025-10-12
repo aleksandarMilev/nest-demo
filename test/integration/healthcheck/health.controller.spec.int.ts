@@ -1,7 +1,8 @@
-import { INestApplication } from '@nestjs/common';
+import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { Express } from 'express';
+import type { Express } from 'express';
 import request from 'supertest';
+
 import { AppModule } from '../../../src/app.module';
 
 describe('HealthCheck integration tests', () => {

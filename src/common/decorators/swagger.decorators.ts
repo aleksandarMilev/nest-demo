@@ -1,4 +1,5 @@
-import { applyDecorators, Type } from '@nestjs/common';
+import type { Type } from '@nestjs/common';
+import { applyDecorators } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiCreatedResponse,
@@ -20,8 +21,8 @@ export const ApiTag = (name: string): ClassDecorator =>
   applyDecorators(ApiTags(name)) as ClassDecorator;
 
 export const ApiUuidParam = (
-  name: string = 'id',
-  description: string = 'Resource ID',
+  name = 'id',
+  description = 'Resource ID',
 ): MethodDecorator =>
   applyDecorators(
     ApiParam({
@@ -65,7 +66,7 @@ export const ApiCreatedWithLocation = (
   ) as MethodDecorator;
 
 export const ApiNoContent = (
-  description: string = 'No Content',
+  description = 'No Content',
   summary?: string,
 ): MethodDecorator =>
   applyDecorators(

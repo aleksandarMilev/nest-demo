@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
+
 import {
   TASK_DESCRIPTION_MAX_LENGTH,
   TASK_DESCRIPTION_MIN_LENGTH,
