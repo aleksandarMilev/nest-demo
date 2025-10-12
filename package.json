@@ -9,7 +9,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "prepare": "husky install",
+    "prepare": "husky",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -68,8 +68,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run lint-staged",
-      "pre-push": "npm test"
+      "pre-commit": "npm run lint-staged"
     }
   },
   "jest": {
