@@ -111,8 +111,8 @@ describe('Tasks Service', () => {
       const updated = await service.byId(toBeUpdated.id);
 
       expect(updated.id).toBe(toBeUpdated.id);
-      expect(updated.title).toBe(toBeUpdated.title);
-      expect(updated.description).toBe(toBeUpdated.description);
+      expect(updated.title).toBe('upd t');
+      expect(updated.description).toBe('upd d');
 
       expect(toNotBeUpdated.id).toBe(toNotBeUpdated.id);
       expect(toNotBeUpdated.title).toBe(toNotBeUpdated.title);

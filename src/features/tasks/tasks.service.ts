@@ -47,12 +47,15 @@ export class TasksService {
   }
 
   async update(id: string, dto: UpdateTaskDto): Promise<void> {
-    const entity = this.tasks.find((t) => t.id === id);
-    if (!entity) {
+    const index = this.tasks.findIndex((t) => t.id === id);
+    if (index === -1) {
       this.#logAndThrowNotFound(id);
     }
 
-    updateDtoToEntity(dto, entity);
+    const entity = this.tasks[index];
+    const updated: TaskEntity = updateDtoToEntity(dto, entity);
+    this.tasks[index] = updated;
+
     this.logger.log(entityWriteOperationLogMessage(id, TASK_NAME, 'updated'));
   }
 

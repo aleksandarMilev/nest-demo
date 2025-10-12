@@ -1,0 +1,13 @@
+echo "full lint..."
+npm run lint:strict || exit 1
+
+echo "typecheck..."
+npm run typecheck || exit 1
+
+echo "build..."
+npm run build || exit 1
+
+echo "unit tests (full)..."
+npm test -- --bail || exit 1
+
+echo "pre-push checks passed!"

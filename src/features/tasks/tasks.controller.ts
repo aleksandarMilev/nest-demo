@@ -9,12 +9,9 @@ import {
   ParseUUIDPipe,
   Post,
   Put,
-  Req,
-  Res,
 } from '@nestjs/common';
-import type { Request, Response } from 'express';
 
-import { ProblemDetails } from '../../common/classes/classes';
+import { ProblemDetails } from '../../common/classes/problemDetails';
 import { GLOBAL_PREFIX } from '../../common/constants/constants';
 import {
   ApiCreatedWithLocation,
@@ -26,6 +23,7 @@ import {
   ApiUuidParam,
 } from '../../common/decorators/swagger.decorators';
 import { buildLocation } from '../../common/functions/utils';
+import { PostResponse } from '../../common/interfaces/postResponse.interface';
 import { TASK_NAME } from './constants/constants';
 import { CreateTaskDto } from './dtos/createTask.dto';
 import { GetTaskDto } from './dtos/getTask.dto';
@@ -54,22 +52,11 @@ export class TasksController {
   @ApiCreatedWithLocation(GetTaskDto, 'Create a new task')
   @ApiErrorsNotFoundBadRequest(ProblemDetails)
   @Post()
-  async create(
-    @Body() dto: CreateTaskDto,
-    @Res({ passthrough: true }) response: Response,
-    @Req() request: Request,
-  ): Promise<GetTaskDto> {
+  async create(@Body() dto: CreateTaskDto): Promise<PostResponse<GetTaskDto>> {
     const task = await this.service.create(dto);
-    const location = buildLocation(
-      request.protocol,
-      request.get('host'),
-      GLOBAL_PREFIX,
-      TASK_NAME,
-      task.id,
-    );
+    const location = buildLocation(GLOBAL_PREFIX, TASK_NAME, task.id);
 
-    response.setHeader('Location', location);
-    return task;
+    return { data: task, location };
   }
 
   @ApiNoContent('Task updated', 'Replace a task (full update)')

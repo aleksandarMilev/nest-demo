@@ -4,8 +4,9 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
-import { ProblemDetails } from './common/classes/classes';
+import { ProblemDetails } from './common/classes/problemDetails';
 import { GLOBAL_PREFIX, LOG_LEVELS } from './common/constants/constants';
+import { ProblemDetailsFilter } from './common/filters/problem-details.filter';
 
 void (async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,9 +21,12 @@ void (async function bootstrap() {
         whitelist: true,
         forbidNonWhitelisted: true,
         transform: true,
+        transformOptions: { enableImplicitConversion: true },
       }),
     )
-    .useLogger(LOG_LEVELS);
+    .useGlobalFilters(new ProblemDetailsFilter());
+
+  app.useLogger(LOG_LEVELS);
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Nest Demo API')
