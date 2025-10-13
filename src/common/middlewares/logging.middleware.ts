@@ -11,6 +11,7 @@ export class LoggingMiddleware implements NestMiddleware {
   use(request: RequestWithId, response: Response, next: NextFunction) {
     const requestId =
       request.headers['x-request-id']?.toString() ?? randomUUID();
+
     request.headers['x-request-id'] = requestId;
 
     const { method, originalUrl } = request;

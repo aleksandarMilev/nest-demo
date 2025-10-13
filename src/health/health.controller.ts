@@ -6,8 +6,10 @@ import {
 } from '@nestjs/swagger';
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus';
 
-import { HealthReportDto } from './classes/classes';
+import { Public } from '../common/decorators/roles/public.decorator';
+import { HealthReportDto } from './dtos/health.report.dto';
 
+@Public()
 @ApiTags('Health')
 @Controller('health')
 export class HealthController {

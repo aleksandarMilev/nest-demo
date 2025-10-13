@@ -1,4 +1,4 @@
-import type { OperationType } from '../types/operationType';
+import type { OperationType } from '../types/operationType.type';
 
 export const entityNotFoundErrorMessage = <T extends string | number | bigint>(
   id: T,

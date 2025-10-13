@@ -13,6 +13,8 @@ import {
 
 import { ProblemDetails } from '../../common/classes/problemDetails';
 import { GLOBAL_PREFIX } from '../../common/constants/constants';
+import { Public } from '../../common/decorators/roles/public.decorator';
+import { Roles } from '../../common/decorators/roles/roles.decorator';
 import {
   ApiCreatedWithLocation,
   ApiErrorsNotFoundBadRequest,
@@ -21,7 +23,7 @@ import {
   ApiOkArray,
   ApiTag,
   ApiUuidParam,
-} from '../../common/decorators/swagger.decorators';
+} from '../../common/decorators/swagger/swagger.decorator';
 import { buildLocation } from '../../common/functions/utils';
 import { PostResponse } from '../../common/interfaces/postResponse.interface';
 import { TASK_NAME } from './constants/constants';
@@ -35,12 +37,14 @@ import { TasksService } from './tasks.service';
 export class TasksController {
   constructor(private readonly service: TasksService) {}
 
+  @Public()
   @ApiOkArray(GetTaskDto, 'List all tasks')
   @Get()
   all() {
     return this.service.all();
   }
 
+  @Public()
   @ApiOk(GetTaskDto, 'Get a task by id')
   @ApiUuidParam('id', 'Task ID')
   @ApiErrorsNotFoundBadRequest(ProblemDetails)
@@ -49,6 +53,7 @@ export class TasksController {
     return this.service.byId(id);
   }
 
+  @Roles('user', 'admin')
   @ApiCreatedWithLocation(GetTaskDto, 'Create a new task')
   @ApiErrorsNotFoundBadRequest(ProblemDetails)
   @Post()
@@ -59,6 +64,7 @@ export class TasksController {
     return { data: task, location };
   }
 
+  @Roles('admin')
   @ApiNoContent('Task updated', 'Replace a task (full update)')
   @ApiUuidParam('id', 'Task ID')
   @ApiErrorsNotFoundBadRequest(ProblemDetails)
@@ -71,6 +77,7 @@ export class TasksController {
     return this.service.update(id, dto);
   }
 
+  @Roles('admin')
   @ApiNoContent('Task removed', 'Delete a task')
   @ApiUuidParam('id', 'Task ID')
   @ApiErrorsNotFoundBadRequest(ProblemDetails)

@@ -1,4 +1,3 @@
-import type { Type } from '@nestjs/common';
 import { applyDecorators } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -11,9 +10,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-type ClassConstructor<T = unknown> = abstract new (...args: unknown[]) => T;
-
-type ApiSchemaType = Type<unknown> | ClassConstructor | string;
+import type { ApiSchemaType } from './types/apiSchema.type';
 
 const noopOperation: MethodDecorator = (_t, _k, d) => d;
 
