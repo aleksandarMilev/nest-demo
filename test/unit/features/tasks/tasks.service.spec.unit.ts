@@ -2,7 +2,7 @@ import { Logger, NotFoundException } from '@nestjs/common';
 
 import { TasksService } from '../../../../src/features/tasks/tasks.service';
 
-describe('Tasks Service', () => {
+describe('Tasks Service Unit', () => {
   let service: TasksService;
   let loggerLogSpy: jest.SpyInstance;
   let loggerWarnSpy: jest.SpyInstance;

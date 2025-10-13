@@ -7,7 +7,7 @@ npm run typecheck || exit 1
 echo "build..."
 npm run build || exit 1
 
-echo "unit tests (full)..."
-npm test -- --bail || exit 1
+echo "tests (integration and unit)..."
+npm test:cov -- --bail || exit 1
 
 echo "pre-push checks passed!"

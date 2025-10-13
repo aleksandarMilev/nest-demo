@@ -1,7 +1,7 @@
 import { PORT_MIN_VALUE } from '../../../src/validation/constants';
 import schema from '../../../src/validation/schema';
 
-describe('Validation Schema', () => {
+describe('Validation Schema Unit', () => {
   it('should not return error when schema is valid', () => {
     const result = schema.validate({
       PORT: 3_000,

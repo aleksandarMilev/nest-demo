@@ -11,7 +11,7 @@ import {
   Put,
 } from '@nestjs/common';
 
-import { ProblemDetails } from '../../common/classes/problemDetails';
+import { ProblemDetails } from '../../common/classes/problemDetails.class';
 import { GLOBAL_PREFIX } from '../../common/constants/constants';
 import { Public } from '../../common/decorators/roles/public.decorator';
 import { Roles } from '../../common/decorators/roles/roles.decorator';

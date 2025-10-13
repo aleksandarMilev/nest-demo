@@ -4,9 +4,9 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
-import { ProblemDetails } from './common/classes/problemDetails';
+import { ProblemDetails } from './common/classes/problemDetails.class';
 import { GLOBAL_PREFIX, LOG_LEVELS } from './common/constants/constants';
-import { ProblemDetailsFilter } from './common/filters/problem-details.filter';
+import { ProblemDetailsFilter } from './common/filters/problemDetails.filter';
 
 void (async function bootstrap() {
   const app = await NestFactory.create(AppModule);

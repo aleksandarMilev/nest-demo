@@ -11,7 +11,7 @@ import { AppModule } from '../../../../src/app.module';
 import type { PostResponse } from '../../../../src/common/interfaces/postResponse.interface';
 import type { GetTaskDto } from '../../../../src/features/tasks/dtos/getTask.dto';
 
-describe('TaskController', () => {
+describe('Tasks Controller Integration', () => {
   let app: INestApplication;
   let server: Express;
 
@@ -44,19 +44,12 @@ describe('TaskController', () => {
   const userToken = createJwt(['user']);
   const adminToken = createJwt(['admin']);
 
-  const postAuthDummyTask = async (server: Express) => {
+  const postDummyTask = async (server: Express) => {
     return await request(server)
       .post('/tasks')
       .set('Authorization', `Bearer ${userToken}`)
       .send({ title: 'Title', description: 'Description' })
       .expect(HttpStatus.CREATED);
-  };
-
-  const postUnauthDummyTask = async (server: Express) => {
-    return await request(server)
-      .post('/tasks')
-      .send({ title: 'Title', description: 'Description' })
-      .expect(HttpStatus.UNAUTHORIZED);
   };
 
   describe('all', () => {
@@ -71,7 +64,7 @@ describe('TaskController', () => {
 
     it('should return 200 with all tasks', async () => {
       for (let i = 0; i < 3; i++) {
-        await postAuthDummyTask(server);
+        await postDummyTask(server);
       }
 
       const response = await request(server)
@@ -87,7 +80,7 @@ describe('TaskController', () => {
 
   describe('byId', () => {
     it('should return 200 with the correct task', async () => {
-      const postResponse = await postAuthDummyTask(server);
+      const postResponse = await postDummyTask(server);
       const createdTaskId = (postResponse.body as PostResponse<GetTaskDto>).data
         .id;
 
@@ -102,7 +95,7 @@ describe('TaskController', () => {
     });
 
     it('should return 404 when task is not found and Id passed is UUID', async () => {
-      await postAuthDummyTask(server);
+      await postDummyTask(server);
 
       await request(server)
         .get(`/tasks/${randomUUID()}`)
@@ -110,7 +103,7 @@ describe('TaskController', () => {
     });
 
     it('should return 400 when task is not found and Id passed is not an UUID', async () => {
-      await postAuthDummyTask(server);
+      await postDummyTask(server);
 
       await request(server).get('/tasks/foo').expect(HttpStatus.BAD_REQUEST);
     });
@@ -118,13 +111,13 @@ describe('TaskController', () => {
 
   describe('create', () => {
     it('should return 201 and a Location header', async () => {
-      const response = await postAuthDummyTask(server);
+      const response = await postDummyTask(server);
 
       expect(response.headers.location).toContain('task');
     });
 
     it('should return 201 and the the task created', async () => {
-      const response = await postAuthDummyTask(server);
+      const response = await postDummyTask(server);
 
       const task = (response.body as PostResponse<GetTaskDto>).data;
       expect(task.title).toBe('Title');
@@ -132,13 +125,24 @@ describe('TaskController', () => {
     });
 
     it('should return 401 when no auth header', async () => {
-      await postUnauthDummyTask(server);
+      await request(server)
+        .post('/tasks')
+        .send({ title: 'Title', description: 'Description' })
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+
+    it('should return 401 when invalid jwt as auth header', async () => {
+      await request(server)
+        .post('/tasks')
+        .set('Authorization', 'Bearer foo')
+        .send({ title: 'Title', description: 'Description' })
+        .expect(HttpStatus.UNAUTHORIZED);
     });
   });
 
   describe('update', () => {
     it('should return 204', async () => {
-      const postResponse = await postAuthDummyTask(server);
+      const postResponse = await postDummyTask(server);
 
       const createdTaskId = (postResponse.body as PostResponse<GetTaskDto>).data
         .id;
@@ -151,7 +155,7 @@ describe('TaskController', () => {
     });
 
     it('should return 404 when task is not found and Id passed is UUID', async () => {
-      await postAuthDummyTask(server);
+      await postDummyTask(server);
 
       await request(server)
         .put(`/tasks/${randomUUID()}`)
@@ -161,7 +165,7 @@ describe('TaskController', () => {
     });
 
     it('should return 400 when task is not found and Id passed is not an UUID', async () => {
-      await postAuthDummyTask(server);
+      await postDummyTask(server);
 
       await request(server)
         .put('/tasks/foo')
@@ -171,18 +175,38 @@ describe('TaskController', () => {
     });
 
     it('should return 401 with no auth header in the request', async () => {
-      await postAuthDummyTask(server);
+      await postDummyTask(server);
 
       await request(server)
         .put('/tasks/foo')
         .send({ title: 'updated t', description: 'updated d' })
         .expect(HttpStatus.UNAUTHORIZED);
     });
+
+    it('should return 401 with invalid jwt as auth header in the request', async () => {
+      await postDummyTask(server);
+
+      await request(server)
+        .put('/tasks/foo')
+        .set('Authorization', 'Bearer foo')
+        .send({ title: 'updated t', description: 'updated d' })
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+
+    it('should return 403 with auth header without admin rights', async () => {
+      await postDummyTask(server);
+
+      await request(server)
+        .put('/tasks/foo')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ title: 'updated t', description: 'updated d' })
+        .expect(HttpStatus.FORBIDDEN);
+    });
   });
 
   describe('delete', () => {
     it('should return 204', async () => {
-      const postResponse = await postAuthDummyTask(server);
+      const postResponse = await postDummyTask(server);
 
       const createdTaskId = (postResponse.body as PostResponse<GetTaskDto>).data
         .id;
@@ -194,7 +218,7 @@ describe('TaskController', () => {
     });
 
     it('should return 404 when task is not found and Id passed is UUID', async () => {
-      await postAuthDummyTask(server);
+      await postDummyTask(server);
 
       await request(server)
         .delete(`/tasks/${randomUUID()}`)
@@ -203,7 +227,7 @@ describe('TaskController', () => {
     });
 
     it('should return 400 when task is not found and Id passed is not an UUID', async () => {
-      await postAuthDummyTask(server);
+      await postDummyTask(server);
 
       await request(server)
         .delete('/tasks/foo')
@@ -212,7 +236,7 @@ describe('TaskController', () => {
     });
 
     it('should return 401 with no auth header in the request', async () => {
-      const postResponse = await postAuthDummyTask(server);
+      const postResponse = await postDummyTask(server);
 
       const createdTaskId = (postResponse.body as PostResponse<GetTaskDto>).data
         .id;
@@ -220,6 +244,30 @@ describe('TaskController', () => {
       await request(server)
         .delete(`/tasks/${createdTaskId}`)
         .expect(HttpStatus.UNAUTHORIZED);
+    });
+
+    it('should return 401 with invalid jwt as auth header in the request', async () => {
+      const postResponse = await postDummyTask(server);
+
+      const createdTaskId = (postResponse.body as PostResponse<GetTaskDto>).data
+        .id;
+
+      await request(server)
+        .delete(`/tasks/${createdTaskId}`)
+        .set('Authorization', 'Bearer foo')
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+
+    it('should return 403 with auth header without admin rights', async () => {
+      const postResponse = await postDummyTask(server);
+
+      const createdTaskId = (postResponse.body as PostResponse<GetTaskDto>).data
+        .id;
+
+      await request(server)
+        .delete(`/tasks/${createdTaskId}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .expect(HttpStatus.FORBIDDEN);
     });
   });
 });
