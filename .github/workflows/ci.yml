@@ -1,9 +1,9 @@
 name: CI/CD Pipeline
 
 on:
-  push:
-    branches: [ develop, master ]
   pull_request:
+    branches: [ master ]
+  push:
     branches: [ master ]
   workflow_dispatch:
 
@@ -12,6 +12,12 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      AWS_REGION: eu-north-1
+      EB_APP_NAME: "nest demo"
+      EB_ENV_NAME: "Nestdemo-env"
+      ECR_REPO: "nest-demo"
+      IMAGE_TAG: ${{ github.sha }}
+
       AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
       AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
 
@@ -34,33 +40,79 @@ jobs:
       - name: Run Jest tests
         run: docker run --env-file .env.dev -e CI=true aleksandarMilev/nest-demo npm run test:cov
 
-      - name: Build production image
-        if: ${{ github.ref == 'refs/heads/master' }}
-        run: docker build -t nest-demo:prod -f Dockerfile.prod .
+      - name: Configure AWS credentials
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Extract dist from prod image
-        if: ${{ github.ref == 'refs/heads/master' }}
+      - name: Get AWS account ID
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        id: acct
+        run: echo "id=$(aws sts get-caller-identity --query Account --output text)" >> $GITHUB_OUTPUT
+
+      - name: Ensure ECR repository exists
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
         run: |
-          cid=$(docker create nest-demo:prod)
-          docker cp "$cid":/app/dist ./dist
-          docker rm -f "$cid"
+          aws ecr describe-repositories --repository-names "${ECR_REPO}" >/dev/null 2>&1 || \
+          aws ecr create-repository --repository-name "${ECR_REPO}" >/dev/null
 
-      - name: Prepare Dockerfile for EB
-        if: ${{ github.ref == 'refs/heads/master' }}
-        run: cp Dockerfile.prod Dockerfile
+      - name: Log in to ECR
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        run: |
+          aws ecr get-login-password --region "${AWS_REGION}" | \
+          docker login --username AWS --password-stdin "${{ steps.acct.outputs.id }}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 
-      - name: Create deployment package
-        if: ${{ github.ref == 'refs/heads/master' }}
-        run: zip -r dist.zip dist Dockerfile
+      - name: Build production image
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        run: docker build -t "${ECR_REPO}:${IMAGE_TAG}" -f Dockerfile.prod .
 
-      - name: Deploy to Elastic Beanstalk
-        if: ${{ github.ref == 'refs/heads/master' && env.AWS_ACCESS_KEY != '' && env.AWS_SECRET_KEY != '' }}
+      - name: Tag & push image to ECR
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        run: |
+          REG="${{ steps.acct.outputs.id }}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          docker tag "${ECR_REPO}:${IMAGE_TAG}" "${REG}/${ECR_REPO}:${IMAGE_TAG}"
+          docker push "${REG}/${ECR_REPO}:${IMAGE_TAG}"
+
+      - name: Generate Dockerrun.aws.json (ECS single container)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        run: |
+          REG="${{ steps.acct.outputs.id }}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          cat > Dockerrun.aws.json <<'JSON'
+          {
+            "AWSEBDockerrunVersion": 2,
+            "containerDefinitions": [
+              {
+                "name": "nest-demo",
+                "image": "__IMAGE__",
+                "essential": true,
+                "memoryReservation": 256,
+                "portMappings": [{ "containerPort": 3000, "hostPort": 3000 }],
+                "environment": [
+                  { "name": "NODE_ENV", "value": "production" },
+                  { "name": "PORT", "value": "3000" }
+                ],
+                "command": ["npm","run","prod"]
+              }
+            ]
+          }
+          JSON
+          sed -i "s|__IMAGE__|${REG}/${ECR_REPO}:${IMAGE_TAG}|g" Dockerrun.aws.json
+
+      - name: Create deployment package (ECS platform expects Dockerrun.aws.json)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        run: zip -r dist.zip Dockerrun.aws.json
+
+      - name: Deploy to Elastic Beanstalk (ECS platform)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
         uses: einaregilsson/beanstalk-deploy@v21
         with:
           aws_access_key: ${{ env.AWS_ACCESS_KEY }}
           aws_secret_key: ${{ env.AWS_SECRET_KEY }}
-          application_name: "nest demo"
-          environment_name: "Nestdemo-env"
-          region: "eu-north-1"
+          application_name: ${{ env.EB_APP_NAME }}
+          environment_name: ${{ env.EB_ENV_NAME }}
+          region: ${{ env.AWS_REGION }}
           version_label: ${{ github.run_number }}
           deployment_package: "./dist.zip"
