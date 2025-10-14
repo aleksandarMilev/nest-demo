@@ -28,7 +28,7 @@ import validationSchema from './validation/schema';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: '.env.dev',
       validationSchema,
     }),
     TasksModule,
