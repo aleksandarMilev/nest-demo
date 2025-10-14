@@ -2,13 +2,18 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ master ]
+    branches: [ develop, master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
 
 jobs:
   build-test-deploy:
     runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+      AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
 
     steps:
       - name: Checkout repository
@@ -17,39 +22,43 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Docker Hub
-        if: ${{ secrets.DOCKER_USERNAME != '' && secrets.DOCKER_PASSWORD != '' }}
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Cache npm dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
       - name: Build Docker image for testing
         run: docker build -t aleksandarMilev/nest-demo -f Dockerfile.dev .
+
+      - name: Create test env file
+        run: |
+          cp .env.example .env.dev
+          sed -i 's/^NODE_ENV=.*/NODE_ENV=test/' .env.dev
+          sed -i 's|^DATABASE_URL=.*|DATABASE_URL=postgres://user:pass@localhost:5432/ci|' .env.dev
 
       - name: Run Jest tests
         run: docker run --env-file .env.dev -e CI=true aleksandarMilev/nest-demo npm run test:cov
 
-      - name: Build production Docker image
-        run: docker build -t aleksandarMilev/nest-demo:prod -f Dockerfile.prod .
+      - name: Build production image
+        if: ${{ github.ref == 'refs/heads/master' }}
+        run: docker build -t nest-demo:prod -f Dockerfile.prod .
+
+      - name: Extract dist from prod image
+        if: ${{ github.ref == 'refs/heads/master' }}
+        run: |
+          cid=$(docker create nest-demo:prod)
+          docker cp "$cid":/app/dist ./dist
+          docker rm -f "$cid"
+
+      - name: Prepare Dockerfile for EB
+        if: ${{ github.ref == 'refs/heads/master' }}
+        run: cp Dockerfile.prod Dockerfile
 
       - name: Create deployment package
-        run: zip -r dist.zip dist package.json package-lock.json Dockerfile.prod
+        if: ${{ github.ref == 'refs/heads/master' }}
+        run: zip -r dist.zip dist Dockerfile
 
       - name: Deploy to Elastic Beanstalk
-        if: github.ref == 'refs/heads/master'
+        if: ${{ github.ref == 'refs/heads/master' && env.AWS_ACCESS_KEY != '' && env.AWS_SECRET_KEY != '' }}
         uses: einaregilsson/beanstalk-deploy@v21
         with:
-          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
-          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+          aws_access_key: ${{ env.AWS_ACCESS_KEY }}
+          aws_secret_key: ${{ env.AWS_SECRET_KEY }}
           application_name: "nest demo"
           environment_name: "Nestdemo-env"
           region: "eu-north-1"
