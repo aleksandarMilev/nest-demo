@@ -34,13 +34,24 @@ jobs:
       - name: Run Jest tests
         run: docker run --env-file .env.dev -e CI=true aleksandarMilev/nest-demo npm run test:cov
 
-      - name: Build production (optional, local verify)
+      - name: Build production image
         if: ${{ github.ref == 'refs/heads/master' }}
         run: docker build -t nest-demo:prod -f Dockerfile.prod .
 
+      - name: Extract dist from prod image
+        if: ${{ github.ref == 'refs/heads/master' }}
+        run: |
+          cid=$(docker create nest-demo:prod)
+          docker cp "$cid":/app/dist ./dist
+          docker rm -f "$cid"
+
+      - name: Prepare Dockerfile for EB
+        if: ${{ github.ref == 'refs/heads/master' }}
+        run: cp Dockerfile.prod Dockerfile
+
       - name: Create deployment package
         if: ${{ github.ref == 'refs/heads/master' }}
-        run: zip -r dist.zip dist package.json package-lock.json Dockerfile.prod
+        run: zip -r dist.zip dist Dockerfile
 
       - name: Deploy to Elastic Beanstalk
         if: ${{ github.ref == 'refs/heads/master' && env.AWS_ACCESS_KEY != '' && env.AWS_SECRET_KEY != '' }}
