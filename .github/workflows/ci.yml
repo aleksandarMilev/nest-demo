@@ -25,6 +25,12 @@ jobs:
       - name: Build Docker image for testing
         run: docker build -t aleksandarMilev/nest-demo -f Dockerfile.dev .
 
+      - name: Create test env file
+        run: |
+          cp .env.example .env.dev
+          sed -i 's/^NODE_ENV=.*/NODE_ENV=test/' .env.dev
+          sed -i 's|^DATABASE_URL=.*|DATABASE_URL=postgres://user:pass@localhost:5432/ci|' .env.dev
+
       - name: Run Jest tests
         run: docker run --env-file .env.dev -e CI=true aleksandarMilev/nest-demo npm run test:cov
 
