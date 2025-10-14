@@ -61,7 +61,7 @@ jobs:
         id: can_deploy
         shell: bash
         run: |
-          set -e
+          set -euo pipefail
           echo "should=false" >> "$GITHUB_OUTPUT"
 
           if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/master" ]] || [[ "${{ inputs.force_deploy }}" == "true" ]]; then
@@ -76,17 +76,27 @@ jobs:
             exit 0
           fi
 
-          if aws elasticbeanstalk describe-applications --application-names "${EB_APP_NAME}" >/dev/null 2>&1; then
-            if aws elasticbeanstalk describe-environments --application-name "${EB_APP_NAME}" \
-                 --environment-names "${EB_ENV_NAME}" --no-include-deleted >/dev/null 2>&1; then
-              echo "should=true" >> "$GITHUB_OUTPUT"
-              echo "Beanstalk app/env found; enabling deploy."
-            else
-              echo "Beanstalk environment '${EB_ENV_NAME}' not found; skipping deploy."
-            fi
-          else
-            echo "Beanstalk application '${EB_APP_NAME}' not found; skipping deploy."
+          APP_EXISTS=$(aws elasticbeanstalk describe-applications \
+            --query "length(Applications[?ApplicationName=='${EB_APP_NAME}'])" \
+            --output text 2>/dev/null || echo 0)
+
+          if [[ "${APP_EXISTS}" != "1" ]]; then
+            echo "EB application '${EB_APP_NAME}' not found; skipping deploy."
+            exit 0
           fi
+
+          ENV_EXISTS=$(aws elasticbeanstalk describe-environments \
+            --application-name "${EB_APP_NAME}" \
+            --query "length(Environments[?EnvironmentName=='${EB_ENV_NAME}' && Status!='Terminated'])" \
+            --output text 2>/dev/null || echo 0)
+
+          if [[ "${ENV_EXISTS}" != "1" ]]; then
+            echo "EB environment '${EB_ENV_NAME}' not found; skipping deploy."
+            exit 0
+          fi
+
+          echo "Beanstalk app & env found; enabling deploy."
+          echo "should=true" >> "$GITHUB_OUTPUT"
 
       - name: Echo can_deploy
         run: echo "can_deploy=${{ steps.can_deploy.outputs.should }}"
@@ -167,7 +177,27 @@ jobs:
       - name: Create deployment package
         run: zip -r dist.zip Dockerrun.aws.json
 
+      - name: Verify EB app/env before deploy
+        id: ebcheck
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP_EXISTS=$(aws elasticbeanstalk describe-applications \
+            --query "length(Applications[?ApplicationName=='${EB_APP_NAME}'])" \
+            --output text 2>/dev/null || echo 0)
+          ENV_EXISTS=$(aws elasticbeanstalk describe-environments \
+            --application-name "${EB_APP_NAME}" \
+            --query "length(Environments[?EnvironmentName=='${EB_ENV_NAME}' && Status!='Terminated'])" \
+            --output text 2>/dev/null || echo 0)
+          if [[ "${APP_EXISTS}" == "1" && "${ENV_EXISTS}" == "1" ]]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping EB deploy because app or env not found."
+          fi
+
       - name: Deploy to Elastic Beanstalk (ECS platform)
+        if: ${{ steps.ebcheck.outputs.ok == 'true' }}
         uses: einaregilsson/beanstalk-deploy@v21
         with:
           aws_access_key: ${{ env.AWS_ACCESS_KEY }}
