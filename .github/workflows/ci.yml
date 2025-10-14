@@ -1,0 +1,57 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        if: ${{ secrets.DOCKER_USERNAME != '' && secrets.DOCKER_PASSWORD != '' }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Build Docker image for testing
+        run: docker build -t aleksandarMilev/nest-demo -f Dockerfile.dev .
+
+      - name: Run Jest tests
+        run: docker run --env-file .env.dev -e CI=true aleksandarMilev/nest-demo npm run test:cov
+
+      - name: Build production Docker image
+        run: docker build -t aleksandarMilev/nest-demo:prod -f Dockerfile.prod .
+
+      - name: Create deployment package
+        run: zip -r dist.zip dist package.json package-lock.json Dockerfile.prod
+
+      - name: Deploy to Elastic Beanstalk
+        if: github.ref == 'refs/heads/master'
+        uses: einaregilsson/beanstalk-deploy@v21
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+          application_name: "nest demo"
+          environment_name: "Nestdemo-env"
+          region: "eu-north-1"
+          version_label: ${{ github.run_number }}
+          deployment_package: "./dist.zip"
