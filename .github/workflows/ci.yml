@@ -114,5 +114,6 @@ jobs:
           application_name: ${{ env.EB_APP_NAME }}
           environment_name: ${{ env.EB_ENV_NAME }}
           region: ${{ env.AWS_REGION }}
-          version_label: ${{ github.run_number }}
+          version_label: ${{ github.run_number }}-${{ github.sha }}
+          use_existing_version_if_available: true
           deployment_package: "./dist.zip"
