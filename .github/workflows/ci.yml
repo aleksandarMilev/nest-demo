@@ -6,6 +6,11 @@ on:
   push:
     branches: [ master ]
   workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: "Force AWS deploy even if not a push to master?"
+        required: false
+        default: "false"
 
 jobs:
   build-test-deploy:
@@ -40,44 +45,76 @@ jobs:
       - name: Run Jest tests
         run: docker run --env-file .env.dev -e CI=true aleksandarMilev/nest-demo npm run test:cov
 
-      - name: Configure AWS credentials
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      - name: Configure AWS credentials (if secrets exist)
+        id: awscreds
+        if: ${{ env.AWS_ACCESS_KEY != '' && env.AWS_SECRET_KEY != '' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ env.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ env.AWS_SECRET_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: "Preflight check: can_deploy?"
+        id: can_deploy
+        shell: bash
+        run: |
+          set -e
+          echo "should=false" >> $GITHUB_OUTPUT
+
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/master" ]] || [[ "${{ inputs.force_deploy }}" == "true" ]]; then
+            :
+          else
+            echo "Not a deploy event (push to master) and force_deploy not set."
+            exit 0
+          fi
+
+          if [[ "${{ steps.awscreds.outcome }}" != "success" ]]; then
+            echo "AWS credentials not configured; skipping deploy."
+            exit 0
+          fi
+
+          if aws elasticbeanstalk describe-applications --application-names "${EB_APP_NAME}" >/dev/null 2>&1; then
+            if aws elasticbeanstalk describe-environments --application-name "${EB_APP_NAME}" \
+                 --environment-names "${EB_ENV_NAME}" --no-include-deleted >/dev/null 2>&1; then
+              echo "should=true" >> $GITHUB_OUTPUT
+              echo "Beanstalk app/env found; enabling deploy."
+            else
+              echo "Beanstalk environment '${EB_ENV_NAME}' not found; skipping deploy."
+            fi
+          else
+            echo "Beanstalk application '${EB_APP_NAME}' not found; skipping deploy."
+          fi
+
       - name: Get AWS account ID
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if: ${{ steps.can_deploy.outputs.should == 'true' }}
         id: acct
         run: echo "id=$(aws sts get-caller-identity --query Account --output text)" >> $GITHUB_OUTPUT
 
       - name: Ensure ECR repository exists
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if: ${{ steps.can_deploy.outputs.should == 'true' }}
         run: |
           aws ecr describe-repositories --repository-names "${ECR_REPO}" >/dev/null 2>&1 || \
           aws ecr create-repository --repository-name "${ECR_REPO}" >/dev/null
 
       - name: Log in to ECR
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if: ${{ steps.can_deploy.outputs.should == 'true' }}
         run: |
           aws ecr get-login-password --region "${AWS_REGION}" | \
           docker login --username AWS --password-stdin "${{ steps.acct.outputs.id }}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 
       - name: Build production image
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if: ${{ steps.can_deploy.outputs.should == 'true' }}
         run: docker build -t "${ECR_REPO}:${IMAGE_TAG}" -f Dockerfile.prod .
 
       - name: Tag & push image to ECR
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if: ${{ steps.can_deploy.outputs.should == 'true' }}
         run: |
           REG="${{ steps.acct.outputs.id }}.dkr.ecr.${AWS_REGION}.amazonaws.com"
           docker tag "${ECR_REPO}:${IMAGE_TAG}" "${REG}/${ECR_REPO}:${IMAGE_TAG}"
           docker push "${REG}/${ECR_REPO}:${IMAGE_TAG}"
 
       - name: Generate Dockerrun.aws.json (ECS single container)
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if: ${{ steps.can_deploy.outputs.should == 'true' }}
         run: |
           REG="${{ steps.acct.outputs.id }}.dkr.ecr.${AWS_REGION}.amazonaws.com"
           cat > Dockerrun.aws.json <<'JSON'
@@ -101,12 +138,12 @@ jobs:
           JSON
           sed -i "s|__IMAGE__|${REG}/${ECR_REPO}:${IMAGE_TAG}|g" Dockerrun.aws.json
 
-      - name: Create deployment package (ECS platform expects Dockerrun.aws.json)
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      - name: Create deployment package
+        if: ${{ steps.can_deploy.outputs.should == 'true' }}
         run: zip -r dist.zip Dockerrun.aws.json
 
       - name: Deploy to Elastic Beanstalk (ECS platform)
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if: ${{ steps.can_deploy.outputs.should == 'true' }}
         uses: einaregilsson/beanstalk-deploy@v21
         with:
           aws_access_key: ${{ env.AWS_ACCESS_KEY }}
