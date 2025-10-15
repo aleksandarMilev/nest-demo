@@ -1,0 +1,31 @@
+{
+  "name": "nest-demo-monorepo",
+  "private": true,
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "api-service",
+    "worker",
+    "client"
+  ],
+  "scripts": {
+    "typecheck:all": "npm -w api-service run typecheck && npm -w worker run typecheck",
+    "lint:all": "npm -w api-service run lint && npm -w worker run lint && npm -w client run lint",
+    "build:all": "npm -w api-service run build && npm -w worker run build && npm -w client run build",
+    "test:all": "npm -w api-service test && npm -w worker test",
+    "dev:api": "npm -w api-service run dev",
+    "dev:worker": "npm -w worker run dev",
+    "dev:client": "npm -w client run dev",
+    "build:api": "npm -w api-service run build",
+    "build:worker": "npm -w worker run build",
+    "build:client": "npm -w client run build",
+    "test:api": "npm -w api-service test",
+    "test:worker": "npm -w worker test",
+    "compose:dev": "docker compose -f docker-compose.dev.yml up --build",
+    "compose:prod": "docker compose -f docker-compose.prod.yml up --build",
+    "compose:down": "docker compose down -v",
+    "compose:logs": "docker compose logs -f"
+  }
+}
