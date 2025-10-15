@@ -7,6 +7,7 @@ describe('Validation Schema Unit', () => {
       PORT: 3_000,
       DATABASE_URL: 'postgres://user:pass@localhost:5432/db',
       NODE_ENV: 'development',
+      CLIENT_ENDPOINT: 'http://localhost:5173',
     });
 
     expect(result.error).toBeUndefined();
@@ -16,6 +17,7 @@ describe('Validation Schema Unit', () => {
     const result = schema.validate({
       DATABASE_URL: 'postgres://user:pass@localhost:5432/db',
       NODE_ENV: 'development',
+      CLIENT_ENDPOINT: 'http://localhost:5173',
     });
 
     expect(result.error).toBeDefined();
@@ -26,6 +28,7 @@ describe('Validation Schema Unit', () => {
       PORT: PORT_MIN_VALUE - 1,
       DATABASE_URL: 'postgres://user:pass@localhost:5432/db',
       NODE_ENV: 'development',
+      CLIENT_ENDPOINT: 'http://localhost:5173',
     });
 
     expect(result.error).toBeDefined();
@@ -36,6 +39,7 @@ describe('Validation Schema Unit', () => {
       PORT: 3_000,
       DATABASE_URL: 'foo',
       NODE_ENV: 'development',
+      CLIENT_ENDPOINT: 'http://localhost:5173',
     });
 
     expect(result.error).toBeDefined();
@@ -46,6 +50,18 @@ describe('Validation Schema Unit', () => {
       PORT: 3_000,
       DATABASE_URL: 'postgres://user:pass@localhost:5432/db',
       NODE_ENV: 'foo',
+      CLIENT_ENDPOINT: 'http://localhost:5173',
+    });
+
+    expect(result.error).toBeDefined();
+  });
+
+  it('should return error when CLIENT_ENDPOINT is invalid', () => {
+    const result = schema.validate({
+      PORT: 3_000,
+      DATABASE_URL: 'postgres://user:pass@localhost:5432/db',
+      NODE_ENV: 'development',
+      CLIENT_ENDPOINT: 'foo',
     });
 
     expect(result.error).toBeDefined();

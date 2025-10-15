@@ -28,6 +28,11 @@ void (async function bootstrap() {
 
   app.useLogger(LOG_LEVELS);
 
+  app.enableCors({
+    origin: [config.getOrThrow<string>('CLIENT_ENDPOINT')],
+    credentials: true,
+  });
+
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Nest Demo API')
     .setDescription('API documentation')

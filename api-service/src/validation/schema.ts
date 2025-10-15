@@ -9,6 +9,7 @@ export default Joi.object({
     .max(PORT_MAX_VALUE)
     .required(),
   DATABASE_URL: Joi.string().uri().required(),
+  CLIENT_ENDPOINT: Joi.string().uri().required(),
   NODE_ENV: Joi.string()
     .valid(...NODE_ENVIRONMENTS)
     .required(),
