@@ -1,7 +1,8 @@
 FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --legacy-peer-deps
+ENV HUSKY=0
+RUN npm ci --legacy-peer-deps --ignore-scripts
 COPY . .
 EXPOSE 3000
 CMD ["npm", "run", "dev"]

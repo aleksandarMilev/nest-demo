@@ -8,7 +8,10 @@ export default function App() {
     fetch(`${base}/api/v1/health`)
       .then((response) => response.json())
       .then((data) => setHealth(JSON.stringify(data)))
-      .catch((error) => setHealth(`error: ${error}`));
+      .catch((error) => {
+        console.log(error);
+        setHealth(`error: ${error}`);
+      });
   }, []);
 
   return (
