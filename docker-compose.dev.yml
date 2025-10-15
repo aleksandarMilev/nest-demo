@@ -1,12 +1,39 @@
 services:
-  app:
-    container_name: nest-demo-dev
+  api:
+    container_name: api-service
     build:
-      context: .
+      context: ./api-service
       dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
-    env_file: .env.dev
+    env_file:
+      - ./api-service/.env.dev
     volumes:
-      - .:/app
+      - ./api-service:/app
       - /app/node_modules
+
+  worker:
+    container_name: worker-service
+    build:
+      context: ./worker
+      dockerfile: Dockerfile.dev
+    env_file:
+      - ./worker/.env.dev
+    volumes:
+      - ./worker:/app
+      - /app/node_modules
+
+  client:
+    container_name: client
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    env_file:
+      - ./client/.env.dev
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    depends_on:
+      - api
