@@ -1,28 +1,31 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
+ENV NPM_CONFIG_AUDIT=false \
+    NPM_CONFIG_FUND=false \
+    NPM_CONFIG_IGNORE_SCRIPTS=true
 COPY package.json package-lock.json ./
 COPY api-service/package.json ./api-service/
-COPY worker/package.json      ./worker/
-COPY client/package.json      ./client/
-ENV HUSKY=0
-RUN npm ci --workspaces --include-workspace-root=false --ignore-scripts
+RUN npm ci -w api-service --include-workspace-root=false
 FROM node:20-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
+COPY package.json package-lock.json ./
 COPY tsconfig.base.json ./
 COPY api-service/ ./api-service/
 RUN npm -w api-service run build
-
-FROM node:20-alpine AS runtime
+FROM node:20-alpine AS prod-deps
 WORKDIR /app
-ENV NODE_ENV=production
+ENV NPM_CONFIG_AUDIT=false \
+    NPM_CONFIG_FUND=false \
+    NPM_CONFIG_IGNORE_SCRIPTS=true
 COPY package.json package-lock.json ./
 COPY api-service/package.json ./api-service/
-COPY worker/package.json      ./worker/
-COPY client/package.json      ./client/
-RUN npm ci --workspaces --include-workspace-root=false --omit=dev --ignore-scripts
-COPY --from=build /app/api-service/dist ./api-service/dist
-USER node
+RUN npm ci -w api-service --include-workspace-root=false --omit=dev
+FROM node:20-alpine AS runtime
+ENV NODE_ENV=production
 WORKDIR /app/api-service
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=build /app/api-service/dist ./dist
+USER node
 EXPOSE 3000
 CMD ["node","--enable-source-maps","dist/main.js"]

@@ -4,7 +4,6 @@ COPY package.json package-lock.json ./
 COPY api-service/package.json ./api-service/
 COPY worker/package.json      ./worker/
 COPY client/package.json      ./client/
-ENV HUSKY=0
 RUN npm ci --workspaces --include-workspace-root=false --ignore-scripts
 COPY tsconfig.base.json ./
 COPY worker/ ./worker/

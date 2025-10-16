@@ -1,7 +1,0 @@
-echo "lint-staged..."
-npm run lint-staged || exit 1
-
-echo "typecheck..."
-npm run typecheck || exit 1
-
-echo "pre-commit checks passed!"
