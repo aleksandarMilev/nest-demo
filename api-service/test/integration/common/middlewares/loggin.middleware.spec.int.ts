@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 import type { Express } from 'express';
 import request from 'supertest';
 
-import { AppModule } from '../../../../src/app.module';
+import { AppModule } from '../../../../src/app.module.js';
 
 describe('Logging Middleware Integration', () => {
   let app: INestApplication;

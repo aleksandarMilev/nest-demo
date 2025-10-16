@@ -6,7 +6,7 @@ import {
   TASK_DESCRIPTION_MIN_LENGTH,
   TASK_TITLE_MAX_LENGTH,
   TASK_TITLE_MIN_LENGTH,
-} from '../constants/constants';
+} from '../constants/constants.js';
 
 export class CreateTaskDto {
   @ApiProperty({

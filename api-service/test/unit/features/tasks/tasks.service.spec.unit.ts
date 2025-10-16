@@ -1,6 +1,6 @@
 import { Logger, NotFoundException } from '@nestjs/common';
 
-import { TasksService } from '../../../../src/features/tasks/tasks.service';
+import { TasksService } from '../../../../src/features/tasks/tasks.service.js';
 
 describe('Tasks Service Unit', () => {
   let service: TasksService;

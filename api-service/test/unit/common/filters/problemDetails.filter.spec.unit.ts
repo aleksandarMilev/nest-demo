@@ -1,9 +1,9 @@
 import type { ArgumentsHost } from '@nestjs/common';
 import { HttpException, HttpStatus } from '@nestjs/common';
-import type { HttpArgumentsHost } from '@nestjs/common/interfaces';
+import type { HttpArgumentsHost } from '@nestjs/common/interfaces/index.js';
 import type { Request, Response } from 'express';
 
-import { ProblemDetailsFilter } from '../../../../src/common/filters/problemDetails.filter';
+import { ProblemDetailsFilter } from '../../../../src/common/filters/problemDetails.filter.js';
 
 describe('Problem Details Filter Unit', () => {
   let filter: ProblemDetailsFilter;

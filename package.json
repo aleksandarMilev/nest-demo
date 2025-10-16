@@ -11,7 +11,7 @@
     "client"
   ],
   "scripts": {
-    "typecheck:all": "npm -w api-service run typecheck && npm -w worker run typecheck",
+    "typecheck:all": "npm -w api-service run typecheck && npm -w worker run typecheck && npm -w client run typecheck",
     "lint:all": "npm -w api-service run lint && npm -w worker run lint && npm -w client run lint",
     "build:all": "npm -w api-service run build && npm -w worker run build && npm -w client run build",
     "test:all": "npm -w api-service test && npm -w worker test",

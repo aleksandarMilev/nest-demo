@@ -1,12 +1,11 @@
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { LOG_LEVELS, Logger, ValidationPipe } from '@nestjs/common';
+import type { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface.ts';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
-import { AppModule } from './app.module';
-import { ProblemDetails } from './common/classes/problemDetails.class';
-import { GLOBAL_PREFIX, LOG_LEVELS } from './common/constants/constants';
-import { ProblemDetailsFilter } from './common/filters/problemDetails.filter';
+import { AppModule } from './app.module.js';
+import { GLOBAL_PREFIX } from './common/constants/constants.js';
+import { ProblemDetailsFilter } from './common/filters/problemDetails.filter.js';
 
 void (async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -28,26 +27,37 @@ void (async function bootstrap() {
 
   app.useLogger(LOG_LEVELS);
 
-  app.enableCors({
-    origin: [config.getOrThrow<string>('CLIENT_ENDPOINT')],
+  const allowed = new Set(['http://localhost:5173', 'http://127.0.0.1:5173']);
+  const corsOptions: CorsOptions = {
+    origin(origin, callback) {
+      if (!origin || allowed.has(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked: ${origin}`));
+    },
     credentials: true,
-  });
+  };
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('Nest Demo API')
-    .setDescription('API documentation')
-    .setVersion('1.0')
-    .build();
+  app.enableCors(corsOptions);
 
-  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig, {
-    extraModels: [ProblemDetails],
-    deepScanRoutes: true,
-  });
+  //   const swaggerConfig = new DocumentBuilder()
+  //     .setTitle('Nest Demo API')
+  //     .setDescription('API documentation')
+  //     .setVersion('1.0')
+  //     .build();
 
-  SwaggerModule.setup('docs', app, swaggerDocument, { useGlobalPrefix: true });
+  //   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig, {
+  //     extraModels: [ProblemDetails],
+  //     deepScanRoutes: true,
+  //   });
+
+  //   SwaggerModule.setup('docs', app, swaggerDocument, {
+  //     useGlobalPrefix: true,
+  //   });
 
   const port = config.getOrThrow<string>('PORT');
-  await app.listen(port, () => {
+  await app.listen(port, '0.0.0.0', () => {
     logger.log(`Nest service is listening on port ${port}...`);
   });
 })();

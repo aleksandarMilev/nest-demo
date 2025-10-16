@@ -1,14 +1,19 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 
-import { AuthGuard } from './common/guards/auth/auth.guard';
-import { RolesGuard } from './common/guards/roles/roles.guard';
-import { LocationHeaderInterceptor } from './common/interceptors/locationHeader.interceptor';
-import { LoggingMiddleware } from './common/middlewares/logging.middleware';
-import { TasksModule } from './features/tasks/tasks.module';
-import { HealthModule } from './health/health.module';
-import validationSchema from './validation/schema';
+import { AuthGuard } from './common/guards/auth/auth.guard.js';
+import { RolesGuard } from './common/guards/roles/roles.guard.js';
+import { LocationHeaderInterceptor } from './common/interceptors/locationHeader.interceptor.js';
+import { LoggingMiddleware } from './common/middlewares/logging.middleware.js';
+import { TasksModule } from './features/tasks/tasks.module.js';
+import { HealthModule } from './health/health.module.js';
+import validationSchema from './validation/schema.js';
 
 @Module({
   providers: [
@@ -37,6 +42,8 @@ import validationSchema from './validation/schema';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggingMiddleware).forRoutes('*');
+    consumer
+      .apply(LoggingMiddleware)
+      .forRoutes({ path: '*path', method: RequestMethod.ALL });
   }
 }

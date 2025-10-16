@@ -1,23 +1,29 @@
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY api-service/package.json ./api-service/
+COPY worker/package.json      ./worker/
+COPY client/package.json      ./client/
+ENV HUSKY=0
+RUN npm ci --workspaces --include-workspace-root=false --ignore-scripts
+
 FROM node:20-alpine AS build
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci --legacy-peer-deps
-COPY . .
-RUN npm run build
+COPY --from=deps /app/node_modules ./node_modules
+COPY tsconfig.base.json ./
+COPY worker/ ./worker/
+RUN npm -w worker run build
 
-FROM node:20-alpine AS production
+FROM node:20-alpine AS runtime
 WORKDIR /app
-ENV NODE_ENV=production HUSKY=0
-COPY package*.json ./
-RUN npm ci --legacy-peer-deps --omit=dev --ignore-scripts
-COPY --from=build /app/dist ./dist
-
-RUN apk add --no-cache curl
-
+ENV NODE_ENV=production
+COPY package.json package-lock.json ./
+COPY api-service/package.json ./api-service/
+COPY worker/package.json      ./worker/
+COPY client/package.json      ./client/
+RUN npm ci --workspaces --include-workspace-root=false --omit=dev --ignore-scripts
+COPY --from=build /app/worker/dist ./worker/dist
+USER node
+WORKDIR /app/worker
 EXPOSE 3001
-
-HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
-  CMD curl -fsS http://localhost:3001/health || exit 1
-
-CMD ["npm", "run", "prod"]
-
+CMD ["node","--enable-source-maps","dist/main.js"]

@@ -2,7 +2,7 @@ import { Injectable, Logger, NestMiddleware } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { NextFunction, Response } from 'express';
 
-import { RequestWithId } from '../types/requestWithId';
+import { RequestWithId } from '../types/requestWithId.js';
 
 @Injectable()
 export class LoggingMiddleware implements NestMiddleware {

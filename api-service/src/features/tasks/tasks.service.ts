@@ -6,17 +6,17 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import {
   entityNotFoundErrorMessage,
   entityWriteOperationLogMessage,
-} from '../../common/constants/messages';
-import { TASK_NAME } from './constants/constants';
-import { CreateTaskDto } from './dtos/createTask.dto';
-import { GetTaskDto } from './dtos/getTask.dto';
-import { UpdateTaskDto } from './dtos/updateTask.dto';
-import { TaskEntity } from './entities/task.entity';
+} from '../../common/constants/messages.js';
+import { TASK_NAME } from './constants/constants.js';
+import { CreateTaskDto } from './dtos/createTask.dto.js';
+import { GetTaskDto } from './dtos/getTask.dto.js';
+import { UpdateTaskDto } from './dtos/updateTask.dto.js';
+import { TaskEntity } from './entities/task.entity.js';
 import {
   createDtoToEntity,
   entityToGetDto,
   updateDtoToEntity,
-} from './mapping/mapper';
+} from './mapping/mapper.js';
 
 @Injectable()
 export class TasksService {

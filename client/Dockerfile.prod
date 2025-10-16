@@ -1,12 +1,16 @@
 FROM node:20-alpine AS build
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci --legacy-peer-deps
-COPY . .
-RUN npm run build
+COPY package.json package-lock.json ./
+COPY api-service/package.json ./api-service/
+COPY worker/package.json      ./worker/
+COPY client/package.json      ./client/
+RUN npm ci --workspaces --include-workspace-root=false
+COPY client/ ./client/
+WORKDIR /app/client
+RUN npm run build    # outputs to client/dist
 
-FROM nginx:alpine AS runtime
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist /usr/share/nginx/html
+FROM nginx:alpine
+COPY --from=build /app/client/dist /usr/share/nginx/html
+RUN /bin/sh -c 'echo "OK" > /usr/share/nginx/html/healthz.txt'
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["nginx","-g","daemon off;"]

@@ -8,7 +8,7 @@ import { Response } from 'express';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { HasLocation } from '../interfaces/hasLocation.interface';
+import { HasLocation } from '../interfaces/hasLocation.interface.js';
 
 @Injectable()
 export class LocationHeaderInterceptor implements NestInterceptor {

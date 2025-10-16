@@ -1,8 +1,12 @@
 FROM node:20-alpine
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci --legacy-peer-deps
-COPY . .
+COPY package.json package-lock.json ./
+COPY api-service/package.json ./api-service/
+COPY worker/package.json      ./worker/
+COPY client/package.json      ./client/
+RUN npm ci --workspaces --include-workspace-root=false
+COPY client/ ./client/
+WORKDIR /app/client
 ENV HOST=0.0.0.0
 EXPOSE 5173
 CMD ["npm", "run", "dev", "--", "--host"]

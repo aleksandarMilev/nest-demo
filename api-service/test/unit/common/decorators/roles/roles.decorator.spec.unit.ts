@@ -3,7 +3,7 @@ import 'reflect-metadata';
 import {
   Roles,
   ROLES_KEY,
-} from '../../../../../src/common/decorators/roles/roles.decorator';
+} from '../../../../../src/common/decorators/roles/roles.decorator.js';
 
 describe('Roles Decorator Unit', () => {
   it('should set metadata "roles" with given roles', () => {

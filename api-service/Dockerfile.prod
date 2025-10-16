@@ -1,21 +1,28 @@
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY api-service/package.json ./api-service/
+COPY worker/package.json      ./worker/
+COPY client/package.json      ./client/
+ENV HUSKY=0
+RUN npm ci --workspaces --include-workspace-root=false --ignore-scripts
 FROM node:20-alpine AS build
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci --legacy-peer-deps
-COPY . .
-RUN npm run build
+COPY --from=deps /app/node_modules ./node_modules
+COPY tsconfig.base.json ./
+COPY api-service/ ./api-service/
+RUN npm -w api-service run build
 
-FROM node:20-alpine AS production
+FROM node:20-alpine AS runtime
 WORKDIR /app
-ENV NODE_ENV=production \
-    HUSKY=0
-COPY package*.json ./
-RUN npm ci --legacy-peer-deps --omit=dev --ignore-scripts
-
-COPY --from=build /app/dist ./dist
+ENV NODE_ENV=production
+COPY package.json package-lock.json ./
+COPY api-service/package.json ./api-service/
+COPY worker/package.json      ./worker/
+COPY client/package.json      ./client/
+RUN npm ci --workspaces --include-workspace-root=false --omit=dev --ignore-scripts
+COPY --from=build /app/api-service/dist ./api-service/dist
+USER node
+WORKDIR /app/api-service
 EXPOSE 3000
-
-HEALTHCHECK --interval=30s --timeout=3s \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/v1/health || exit 1
-
-CMD ["npm", "run", "prod"]
+CMD ["node","--enable-source-maps","dist/main.js"]

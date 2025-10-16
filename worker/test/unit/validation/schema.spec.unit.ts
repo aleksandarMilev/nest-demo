@@ -1,5 +1,5 @@
-import { PORT_MIN_VALUE } from '../../../src/validation/constants';
-import schema from '../../../src/validation/schema';
+import { PORT_MIN_VALUE } from '../../../src/validation/constants.js';
+import schema from '../../../src/validation/schema.js';
 
 describe('Validation Schema Unit', () => {
   it('should not return error when schema is valid', () => {
