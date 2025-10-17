@@ -19,6 +19,7 @@ export default defineConfig([
       "*.d.ts",
       "**/*.gen.*",
       "eslint.config.*",
+      "test/__mocks__/**",
     ],
   },
   js.configs.recommended,

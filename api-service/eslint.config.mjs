@@ -19,6 +19,7 @@ export default [
       '*.d.ts',
       '**/*.gen.*',
       'eslint.config.*',
+      'test/setup.cjs',
     ],
   },
   js.configs.recommended,
