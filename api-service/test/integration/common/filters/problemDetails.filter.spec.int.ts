@@ -10,21 +10,24 @@ import { Test } from '@nestjs/testing';
 import { Express } from 'express';
 import request from 'supertest';
 
-import { ProblemDetails } from '../../../../src/common/classes/problemDetails.class';
-import { ProblemDetailsFilter } from '../../../../src/common/filters/problemDetails.filter';
+import { ProblemDetails } from '../../../../src/common/classes/problemDetails.class.js';
+import { ProblemDetailsFilter } from '../../../../src/common/filters/problemDetails.filter.js';
 
 @Controller('errors')
 class ErrorController {
   @Get('http')
+  //Expected an error object to be thrown.eslint@typescript-eslint/only-throw-error
   throwHttp() {
     throw new HttpException('Bad Request Error', HttpStatus.BAD_REQUEST);
   }
 
+  //Unsafe construction of a(n) `error` type typed value.eslint@typescript-eslint/no-unsafe-call
   @Get('generic')
   throwGeneric() {
     throw new Error('Unexpected failure');
   }
 
+  //Expected an error object to be thrown.eslint@typescript-eslint/only-throw-error
   @Get('object')
   throwObject() {
     throw new HttpException(

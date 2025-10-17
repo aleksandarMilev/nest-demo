@@ -1,23 +1,31 @@
+FROM node:20-alpine AS deps
+WORKDIR /app
+ENV NPM_CONFIG_AUDIT=false \
+    NPM_CONFIG_FUND=false \
+    NPM_CONFIG_IGNORE_SCRIPTS=true
+COPY package.json package-lock.json ./
+COPY worker/package.json ./worker/
+RUN npm ci -w worker --include-workspace-root=false
 FROM node:20-alpine AS build
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci --legacy-peer-deps
-COPY . .
-RUN npm run build
-
-FROM node:20-alpine AS production
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json package-lock.json ./
+COPY tsconfig.base.json ./
+COPY worker/ ./worker/
+RUN npm -w worker run build
+FROM node:20-alpine AS prod-deps
 WORKDIR /app
-ENV NODE_ENV=production HUSKY=0
-COPY package*.json ./
-RUN npm ci --legacy-peer-deps --omit=dev --ignore-scripts
-COPY --from=build /app/dist ./dist
-
-RUN apk add --no-cache curl
-
+ENV NPM_CONFIG_AUDIT=false \
+    NPM_CONFIG_FUND=false \
+    NPM_CONFIG_IGNORE_SCRIPTS=true
+COPY package.json package-lock.json ./
+COPY worker/package.json ./worker/
+RUN npm ci -w worker --include-workspace-root=false --omit=dev
+FROM node:20-alpine AS runtime
+ENV NODE_ENV=production
+WORKDIR /app/worker
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=build /app/worker/dist ./dist
+USER node
 EXPOSE 3001
-
-HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
-  CMD curl -fsS http://localhost:3001/health || exit 1
-
-CMD ["npm", "run", "prod"]
-
+CMD ["node","--enable-source-maps","dist/main.js"]

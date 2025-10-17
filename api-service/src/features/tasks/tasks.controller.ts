@@ -11,10 +11,10 @@ import {
   Put,
 } from '@nestjs/common';
 
-import { ProblemDetails } from '../../common/classes/problemDetails.class';
-import { GLOBAL_PREFIX } from '../../common/constants/constants';
-import { Public } from '../../common/decorators/roles/public.decorator';
-import { Roles } from '../../common/decorators/roles/roles.decorator';
+import { ProblemDetails } from '../../common/classes/problemDetails.class.js';
+import { GLOBAL_PREFIX } from '../../common/constants/constants.js';
+import { Public } from '../../common/decorators/roles/public.decorator.js';
+import { Roles } from '../../common/decorators/roles/roles.decorator.js';
 import {
   ApiCreatedWithLocation,
   ApiErrorsNotFoundBadRequest,
@@ -23,14 +23,14 @@ import {
   ApiOkArray,
   ApiTag,
   ApiUuidParam,
-} from '../../common/decorators/swagger/swagger.decorator';
-import { buildLocation } from '../../common/functions/utils';
-import { PostResponse } from '../../common/interfaces/postResponse.interface';
-import { TASK_NAME } from './constants/constants';
-import { CreateTaskDto } from './dtos/createTask.dto';
-import { GetTaskDto } from './dtos/getTask.dto';
-import { UpdateTaskDto } from './dtos/updateTask.dto';
-import { TasksService } from './tasks.service';
+} from '../../common/decorators/swagger/swagger.decorator.js';
+import { buildLocation } from '../../common/functions/utils.js';
+import { PostResponse } from '../../common/interfaces/postResponse.interface.js';
+import { TASK_NAME } from './constants/constants.js';
+import { CreateTaskDto } from './dtos/createTask.dto.js';
+import { GetTaskDto } from './dtos/getTask.dto.js';
+import { UpdateTaskDto } from './dtos/updateTask.dto.js';
+import { TasksService } from './tasks.service.js';
 
 @ApiTag('Tasks')
 @Controller('tasks')

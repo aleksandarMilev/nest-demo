@@ -3,7 +3,7 @@ import 'reflect-metadata';
 import {
   IS_PUBLIC_KEY,
   Public,
-} from '../../../../../src/common/decorators/roles/public.decorator';
+} from '../../../../../src/common/decorators/roles/public.decorator.js';
 
 describe('Public Decorator Unit', () => {
   it('should set metadata "roles" with given roles', () => {

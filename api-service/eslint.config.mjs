@@ -19,6 +19,7 @@ export default [
       '*.d.ts',
       '**/*.gen.*',
       'eslint.config.*',
+      'test/setup.cjs',
     ],
   },
   js.configs.recommended,
@@ -115,7 +116,7 @@ export default [
     },
   },
   {
-    files: ['**/*.{spec,test}.{ts,tsx,js,jsx}'],
+    files: ['**/*.{spec,test}.{ts,tsx,js,jsx}', 'test/**/*.{ts,tsx,js,jsx}'],
     languageOptions: {
       globals: {
         ...globals.jest,
@@ -127,6 +128,11 @@ export default [
         'warn',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/only-throw-error': 'off',
     },
   },
   {

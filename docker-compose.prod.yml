@@ -1,31 +1,41 @@
-version: "3.8"
-
 services:
   api:
     container_name: api-service
     build:
-      context: ./api-service
-      dockerfile: Dockerfile.prod
-    environment:
-      NODE_ENV: production
-    expose:
-      - "3000"
+      context: .
+      dockerfile: api-service/Dockerfile.prod
+    env_file:
+      - ./api-service/.env.prod
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
 
   worker:
     container_name: worker-service
     build:
-      context: ./worker
-      dockerfile: Dockerfile.prod
+      context: .
+      dockerfile: worker/Dockerfile.prod
     env_file:
       - ./worker/.env.prod
-    restart: always
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
 
   client:
     container_name: client
     build:
-      context: ./client
-      dockerfile: Dockerfile.prod
+      context: .
+      dockerfile: client/Dockerfile.prod
     ports:
       - "8080:80"
+    restart: unless-stopped
     depends_on:
-      - api
+      api:
+        condition: service_healthy

@@ -1,8 +1,8 @@
 import { Logger } from '@nestjs/common';
 import type { NextFunction, Response } from 'express';
 
-import { LoggingMiddleware } from '../../../../src/common/middlewares/logging.middleware';
-import type { RequestWithId } from '../../../../src/common/types/requestWithId';
+import { LoggingMiddleware } from '../../../../src/common/middlewares/logging.middleware.js';
+import type { RequestWithId } from '../../../../src/common/types/requestWithId.js';
 
 jest.mock('crypto', () => ({
   randomUUID: jest.fn(() => 'foo'),

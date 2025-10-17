@@ -10,7 +10,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import type { ApiSchemaType } from './types/apiSchema.type';
+import type { ApiSchemaType } from './types/apiSchema.type.js';
 
 const noopOperation: MethodDecorator = (_t, _k, d) => d;
 

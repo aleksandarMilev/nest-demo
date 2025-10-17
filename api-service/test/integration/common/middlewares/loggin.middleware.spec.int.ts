@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 import type { Express } from 'express';
 import request from 'supertest';
 
-import { AppModule } from '../../../../src/app.module';
+import { AppModule } from '../../../../src/app.module.js';
 
 describe('Logging Middleware Integration', () => {
   let app: INestApplication;
@@ -25,13 +25,13 @@ describe('Logging Middleware Integration', () => {
   });
 
   it('should add x-request-id header to response', async () => {
-    const response = await request(server).get('/');
+    const response = await request(server).get('/health');
     expect(response.headers['x-request-id']).toBeDefined();
   });
 
   it('should preserve existing x-request-id from request', async () => {
     const response = await request(server)
-      .get('/')
+      .get('/health')
       .set('x-request-id', 'existing');
 
     expect(response.headers['x-request-id']).toBe('existing');

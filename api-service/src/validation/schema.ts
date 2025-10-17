@@ -1,6 +1,10 @@
-import * as Joi from 'joi';
+import Joi from 'joi';
 
-import { NODE_ENVIRONMENTS, PORT_MAX_VALUE, PORT_MIN_VALUE } from './constants';
+import {
+  NODE_ENVIRONMENTS,
+  PORT_MAX_VALUE,
+  PORT_MIN_VALUE,
+} from './constants.js';
 
 export default Joi.object({
   PORT: Joi.number()

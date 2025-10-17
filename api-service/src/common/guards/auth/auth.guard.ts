@@ -7,8 +7,8 @@ import {
 import { Reflector } from '@nestjs/core';
 import * as jwt from 'jsonwebtoken';
 
-import { IS_PUBLIC_KEY } from '../../decorators/roles/public.decorator';
-import { RequestWithUser } from './interfaces/requestWithUser.type';
+import { IS_PUBLIC_KEY } from '../../decorators/roles/public.decorator.js';
+import { RequestWithUser } from './interfaces/requestWithUser.type.js';
 
 @Injectable()
 export class AuthGuard implements CanActivate {

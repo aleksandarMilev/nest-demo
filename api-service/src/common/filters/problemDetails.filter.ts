@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 
-import { ProblemDetails } from '../classes/problemDetails.class';
+import { ProblemDetails } from '../classes/problemDetails.class.js';
 
 @Catch()
 export class ProblemDetailsFilter implements ExceptionFilter {

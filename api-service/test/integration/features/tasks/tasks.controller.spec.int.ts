@@ -7,9 +7,9 @@ import type { Express } from 'express';
 import * as jwt from 'jsonwebtoken';
 import request from 'supertest';
 
-import { AppModule } from '../../../../src/app.module';
-import type { PostResponse } from '../../../../src/common/interfaces/postResponse.interface';
-import type { GetTaskDto } from '../../../../src/features/tasks/dtos/getTask.dto';
+import { AppModule } from '../../../../src/app.module.js';
+import type { PostResponse } from '../../../../src/common/interfaces/postResponse.interface.js';
+import type { GetTaskDto } from '../../../../src/features/tasks/dtos/getTask.dto.js';
 
 describe('Tasks Controller Integration', () => {
   let app: INestApplication;
