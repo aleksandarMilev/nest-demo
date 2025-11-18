@@ -28,5 +28,9 @@
     "compose:prod": "docker compose -f docker-compose.prod.yml up --build",
     "compose:down": "docker compose down -v",
     "compose:logs": "docker compose logs -f"
+  },
+  "dependencies": {
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2"
   }
 }

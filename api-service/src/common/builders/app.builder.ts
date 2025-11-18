@@ -3,7 +3,9 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import type { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface.js';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { ExpressAdapter } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import express from 'express';
 
 import { AppModule } from '../../app.module.js';
 import { ProblemDetails } from '../classes/problemDetails.class.js';
@@ -62,7 +64,11 @@ const useSwagger = (app: INestApplication) => {
 };
 
 export default async function createNestApplication() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(
+    AppModule,
+    new ExpressAdapter(express()),
+  );
+
   app.setGlobalPrefix(GLOBAL_PREFIX);
 
   const config = app.get(ConfigService);
@@ -90,7 +96,7 @@ export default async function createNestApplication() {
     },
     run: async (logger: Logger = new Logger('Bootstrap')) => {
       const port = config.getOrThrow<string>('PORT');
-      await app.listen(port, '0.0.0.0', () =>
+      await app.listen(port, () =>
         logger.log(`Nest service is listening on port ${port}...`),
       );
     },

@@ -13,6 +13,7 @@ import { LocationHeaderInterceptor } from './common/interceptors/locationHeader.
 import { LoggingMiddleware } from './common/middlewares/logging.middleware.js';
 import { TasksModule } from './features/tasks/tasks.module.js';
 import { HealthModule } from './health/health.module.js';
+import { KafkaModule } from './infrastructure/kafka/kafka.module.js';
 import validationSchema from './validation/schema.js';
 
 @Module({
@@ -38,6 +39,7 @@ import validationSchema from './validation/schema.js';
     }),
     TasksModule,
     HealthModule,
+    KafkaModule,
   ],
 })
 export class AppModule implements NestModule {
